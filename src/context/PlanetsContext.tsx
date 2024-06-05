@@ -43,19 +43,21 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
   const [filterText, setFilterText] = useState<string>('');
 
   React.useEffect(() => {
-    fetch('https://swapi.dev/api/planets')
-      .then((response) => response.json())
-      .then((data) => {
-        const fetchedPlanets: Planet[] = data.results.map((planet: any) => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://swapi.dev/api/planets');
+        const data = await response.json();
+        const fetchedPlanets = data.results.map((planet: any) => {
           const { residents, ...cleanedPlanet } = planet;
           return cleanedPlanet;
         });
         setOriginalPlanets(fetchedPlanets);
         setPlanets(fetchedPlanets);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('Error fetching planets:', error);
-      });
+      }
+    };
+    fetchData();
   }, []);
 
   const applyFilter = (
