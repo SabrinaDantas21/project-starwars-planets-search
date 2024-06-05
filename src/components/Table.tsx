@@ -1,11 +1,25 @@
 import { usePlanets } from '../context/PlanetsContext';
 
 function Table() {
-  const planets = usePlanets();
+  const { planets, filterText, setFilterText } = usePlanets();
+
+  const filteredPlanets = planets
+    .filter((planet) => planet.name.toLowerCase().includes(filterText.toLowerCase()));
+
+  const handleFilterChange = (event: any) => {
+    setFilterText(event.target.value);
+  };
 
   return (
     <div>
       <h2>Planets Table</h2>
+      <input
+        type="text"
+        placeholder="Filter by name..."
+        value={ filterText }
+        onChange={ handleFilterChange }
+        data-testid="name-filter"
+      />
       <table>
         <thead>
           <tr>
@@ -25,7 +39,7 @@ function Table() {
           </tr>
         </thead>
         <tbody>
-          {planets.map((planet, index) => (
+          {filteredPlanets.map((planet, index) => (
             <tr key={ index }>
               <td>{planet.name}</td>
               <td>{planet.rotation_period}</td>

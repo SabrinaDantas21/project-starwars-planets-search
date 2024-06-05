@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, Dispatch, SetStateAction } from 'react';
 
 export interface Planet {
   name: string;
@@ -16,8 +16,20 @@ export interface Planet {
   url: string;
 }
 
-const PlanetsContext = createContext<Planet[]>([]);
+interface PlanetsContextType {
+  planets: Planet[];
+  filterText: string;
+  setFilterText: Dispatch<SetStateAction<string>>;
+}
 
-export const usePlanets = () => useContext(PlanetsContext);
+const PlanetsContext = createContext<PlanetsContextType | undefined>(undefined);
+
+export const usePlanets = () => {
+  const context = useContext(PlanetsContext);
+  if (!context) {
+    throw new Error('usePlanets deve ser usado dentro de um PlanetsProvider');
+  }
+  return context;
+};
 
 export default PlanetsContext;
