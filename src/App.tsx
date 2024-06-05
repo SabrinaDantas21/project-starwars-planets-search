@@ -1,12 +1,12 @@
 import './App.css';
-import Table from './components/Table';
-import PlanetsProvider from './context/planetsProvider';
+import FilteredTable from './components/FilteredTable';
+import PlanetsProvider from './context/PlanetsContext';
 
 function App() {
   return (
     <PlanetsProvider>
       <div className="App">
-        <Table />
+        <FilteredTable />
       </div>
     </PlanetsProvider>
   );
