@@ -1,5 +1,5 @@
-import React,
-{ createContext, useContext, useState, Dispatch, SetStateAction } from 'react';
+import React, { createContext,
+  useContext, useState, Dispatch, SetStateAction } from 'react';
 
 export interface Planet {
   name: string;
@@ -16,7 +16,14 @@ export interface Planet {
   edited: string;
   url: string;
 }
+
 type ComparisonOperator = 'maior que' | 'menor que' | 'igual a';
+
+interface FilterState {
+  column: keyof Planet;
+  comparison: ComparisonOperator;
+  value: string;
+}
 
 export interface PlanetsContextType {
   planets: Planet[];
@@ -25,6 +32,8 @@ export interface PlanetsContextType {
   applyFilter: (column: keyof Planet,
     operator: ComparisonOperator, value: string) => void;
   resetFilter: () => void;
+  addFilter: () => void;
+  filters: FilterState[];
 }
 
 const PlanetsContext = createContext<PlanetsContextType | undefined>(undefined);
@@ -41,6 +50,7 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
   const [originalPlanets, setOriginalPlanets] = useState<Planet[]>([]);
   const [planets, setPlanets] = useState<Planet[]>([]);
   const [filterText, setFilterText] = useState<string>('');
+  const [filters, setFilters] = useState<FilterState[]>([]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -88,6 +98,26 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
   const resetFilter = () => {
     setPlanets(originalPlanets);
     setFilterText('');
+    setFilters([]);
+  };
+
+  const addFilter = () => {
+    const availableColumns = Object.keys(originalPlanets[0]) as (keyof Planet)[];
+    const filteredColumns = filters.map((filter) => filter.column);
+    const remainingColumns = availableColumns.filter(
+      (column) => !filteredColumns.includes(column),
+    );
+
+    if (remainingColumns.length > 0) {
+      setFilters([
+        ...filters,
+        {
+          column: remainingColumns[0],
+          comparison: 'maior que',
+          value: '0',
+        },
+      ]);
+    }
   };
 
   const contextValue: PlanetsContextType = {
@@ -96,6 +126,8 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
     setFilterText,
     applyFilter,
     resetFilter,
+    addFilter,
+    filters,
   };
 
   return (
