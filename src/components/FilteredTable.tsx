@@ -8,12 +8,13 @@ type PlanetProperty = 'name' | 'population' | 'orbital_period' |
 
 function FilteredTable() {
   const { planets: originalPlanets, applyFilter,
-    filterText, setFilterText } = usePlanets();
-  const [filters, setFilters,
-  ] = useState<{ column: PlanetKey; comparison: string; value: string }[]>([]);
+    filterText, setFilterText, clearFilters,
+    clearFilter } = usePlanets();
+  const [filters, setFilters] = useState<{ column: PlanetKey;
+    comparison: string; value: string }[]>([]);
   const [selectedColumn, setSelectedColumn] = useState<PlanetKey>('population');
-  const [comparisonOperator, setComparisonOperator,
-  ] = useState<'maior que' | 'menor que' | 'igual a'>('maior que');
+  const [comparisonOperator, setComparisonOperator] = useState<'maior que'
+  | 'menor que' | 'igual a'>('maior que');
   const [filterValue, setFilterValue] = useState('0');
   const [availableColumns, setAvailableColumns] = useState<PlanetKey[]>([]);
   const [filteredColumns, setFilteredColumns] = useState<PlanetKey[]>([]);
@@ -65,6 +66,17 @@ function FilteredTable() {
     return planet.name.toLowerCase().includes(filterText.toLowerCase());
   });
 
+  const removeFilter = (columnToRemove: PlanetKey) => {
+    clearFilter(columnToRemove);
+  };
+
+  const removeAllFilters = () => {
+    setFilters([]);
+    setFilteredColumns([]);
+    clearFilters();
+    setAvailableColumns(Object.keys(originalPlanets[0]) as PlanetKey[]);
+  };
+
   return (
     <div>
       <select
@@ -114,7 +126,25 @@ function FilteredTable() {
         Reset
       </button>
 
-      <h2>Planets Table</h2>
+      <h2>Planets Star Wars</h2>
+
+      <button
+        type="button"
+        onClick={ removeAllFilters }
+        data-testid="button-remove-filters"
+      >
+        Remover todas filtragens
+      </button>
+      {filters.map((filter, index) => (
+        <div key={ index } data-testid="filter">
+          {filter.column}
+          {' '}
+          {filter.comparison}
+          {' '}
+          {filter.value}
+          <button type="button" onClick={ () => removeFilter(filter.column) }>X</button>
+        </div>
+      ))}
 
       <input
         type="text"

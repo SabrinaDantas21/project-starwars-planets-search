@@ -1,5 +1,5 @@
-import React, { createContext,
-  useContext, useState, Dispatch, SetStateAction } from 'react';
+import React, { createContext, useContext,
+  useState, Dispatch, SetStateAction } from 'react';
 
 export interface Planet {
   name: string;
@@ -29,10 +29,12 @@ export interface PlanetsContextType {
   planets: Planet[];
   filterText: string;
   setFilterText: Dispatch<SetStateAction<string>>;
-  applyFilter: (column: keyof Planet,
-    operator: ComparisonOperator, value: string) => void;
+  applyFilter: (column: keyof Planet, operator: ComparisonOperator,
+    value: string) => void;
   resetFilter: () => void;
   addFilter: () => void;
+  clearFilters: () => void;
+  clearFilter: (columnToRemove: keyof Planet) => void;
   filters: FilterState[];
 }
 
@@ -76,7 +78,6 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
     value: string,
   ) => {
     const filterValue = parseFloat(value);
-
     const filteredPlanets = planets.filter((planet) => {
       const planetValue = parseFloat(String(planet[column]));
       if (Number.isNaN(planetValue)) return false;
@@ -91,8 +92,7 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
           return true;
       }
     });
-
-    setPlanets([...filteredPlanets]);
+    setPlanets(filteredPlanets);
   };
 
   const resetFilter = () => {
@@ -107,7 +107,6 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
     const remainingColumns = availableColumns.filter(
       (column) => !filteredColumns.includes(column),
     );
-
     if (remainingColumns.length > 0) {
       setFilters([
         ...filters,
@@ -120,6 +119,41 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const clearFilters = () => {
+    setFilters([]);
+    setPlanets(originalPlanets);
+  };
+
+  const clearFilter = (columnToRemove: keyof Planet) => {
+    const updatedFilters = filters.filter((filter) => filter.column !== columnToRemove);
+    setFilters(updatedFilters);
+    let filteredPlanets = [...originalPlanets];
+
+    updatedFilters.forEach((filter) => {
+      filteredPlanets = filteredPlanets.filter((planet) => {
+        const planetValue = planet[filter.column];
+        if (typeof planetValue === 'string') {
+          const numericPlanetValue = parseFloat(planetValue);
+          const numericFilterValue = parseFloat(filter.value);
+          if (Number.isNaN(numericPlanetValue)) return false;
+
+          switch (filter.comparison) {
+            case 'maior que':
+              return numericPlanetValue > numericFilterValue;
+            case 'menor que':
+              return numericPlanetValue < numericFilterValue;
+            case 'igual a':
+              return numericPlanetValue === numericFilterValue;
+            default:
+              return true;
+          }
+        }
+        return true;
+      });
+    });
+    setPlanets(filteredPlanets);
+  };
+
   const contextValue: PlanetsContextType = {
     planets,
     filterText,
@@ -128,6 +162,8 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
     resetFilter,
     addFilter,
     filters,
+    clearFilters,
+    clearFilter,
   };
 
   return (
