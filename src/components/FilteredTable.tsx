@@ -86,6 +86,10 @@ function FilteredTable() {
     }
   };
 
+  const filteredPlanets = planets.filter((planet) => {
+    if (!filterText) return true;
+    return planet.name.toLowerCase().includes(filterText.toLowerCase());
+  });
   return (
     <div>
       <select
@@ -161,6 +165,28 @@ function FilteredTable() {
         onChange={ (e) => setFilterText(e.target.value) }
         data-testid="name-filter"
       />
+      <label htmlFor="asc">
+        Ascendente
+        <input
+          type="radio"
+          data-testid="column-sort-input-asc"
+          value="ASC"
+        />
+      </label>
+      <label htmlFor="desc">
+        Descendente
+        <input
+          type="radio"
+          data-testid="column-sort-input-desc"
+          value="DESC"
+        />
+      </label>
+      <button
+        type="submit"
+        data-testid="column-sort-button"
+      >
+        Ordenar
+      </button>
 
       <table data-testid="planets-table">
         <thead>
@@ -172,9 +198,9 @@ function FilteredTable() {
           </tr>
         </thead>
         <tbody>
-          {planets.map((planet, index) => (
+          {filteredPlanets.map((planet, index) => (
             <tr key={ index }>
-              {Object.keys(originalPlanets[0]).map((column) => (
+              {Object.keys(planets[0]).map((column) => (
                 <td key={ column }>{planet[column as keyof Planet] ?? ''}</td>
               ))}
             </tr>

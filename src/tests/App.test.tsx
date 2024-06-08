@@ -1,28 +1,41 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from '../App';
 
- 
-describe('testes pro requisito 5', () => {
-  test('testando botões e o título', async () => {
-    
-    render(<App/>);
-  
-    const botaoFilter = await screen.findByTestId('button-filter');
-    const botaoReset = await screen.findByTestId('button-reset');
-    const inputColumn = await screen.findByTestId('column-filter');
-    const title = await screen.findByText('Planets Star Wars');
-    const valueFilter = await screen.findByTestId('value-filter');
-    const inputName = await screen.findByPlaceholderText('Filter by name...')
-    const botaoRemove = await screen.findByTestId('button-remove-filters');
-    expect(botaoRemove).toBeInTheDocument();
-    expect(title).toBeInTheDocument();
-    expect(botaoReset).toBeInTheDocument();
-    expect(botaoFilter).toBeInTheDocument();
-    expect(inputColumn).toBeInTheDocument();
-    expect(botaoReset).toHaveTextContent('Reset');
-    expect(botaoFilter).toHaveTextContent('Filter');
-    expect(valueFilter).toBeInTheDocument();
-    expect(inputName).toBeInTheDocument();
+describe('FilteredTable Component', () => {
+  test('adiciona um filtro corretamente', () => {
+    render(<App />);
+    const filterButton = screen.getByTestId('button-filter');
+    fireEvent.click(filterButton);
+    const filters = screen.getAllByTestId('filter');
+    expect(filters.length).toBeGreaterThan(0);
   });
-  
+
+  test('reseta filtros corretamente', () => {
+    render(<App />);
+    const resetButton = screen.getByTestId('button-reset');
+    fireEvent.click(resetButton);
+    const filters = screen.queryAllByTestId('filter');
+    expect(filters.length).toBe(0);
+  });
+
+  test('remove um filtro corretamente', () => {
+    render(<App />);
+    const filterButton = screen.getByTestId('button-filter');
+    fireEvent.click(filterButton);
+    const removeButton = screen.getByText('X');
+    fireEvent.click(removeButton);
+    const filters = screen.queryAllByTestId('filter');
+    expect(filters.length).toBe(0);
+  });
+
+  test('remove todos os filtros corretamente', () => {
+    render(<App />);
+    const filterButton = screen.getByTestId('button-filter');
+    fireEvent.click(filterButton);
+    const removeAllButton = screen.getByTestId('button-remove-filters');
+    fireEvent.click(removeAllButton);
+    const filters = screen.queryAllByTestId('filter');
+    expect(filters.length).toBe(0);
+  });
+
 });

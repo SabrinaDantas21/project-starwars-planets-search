@@ -26,7 +26,7 @@ interface FilterState {
 export interface PlanetsContextType {
   planets: Planet[];
   filterText: string;
-  setFilterText: Dispatch<SetStateAction<string>>;
+  setFilterText: (Dispatch<SetStateAction<string>>);
   applyFilter: (column: string, operator: string,
     value: string, planets: Planet[]) => Planet[];
   resetFilter: () => void;
@@ -93,7 +93,6 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
           return true;
       }
     });
-    // setPlanets(filteredPlanets);
     return filteredPlanets;
   };
 
