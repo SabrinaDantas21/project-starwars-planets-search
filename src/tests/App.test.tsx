@@ -10,9 +10,11 @@ describe('testes pro requisito 5', () => {
     const botaoFilter = await screen.findByTestId('button-filter');
     const botaoReset = await screen.findByTestId('button-reset');
     const inputColumn = await screen.findByTestId('column-filter');
-    const title = await screen.findByText('Planets Table');
+    const title = await screen.findByText('Planets Star Wars');
     const valueFilter = await screen.findByTestId('value-filter');
     const inputName = await screen.findByPlaceholderText('Filter by name...')
+    const botaoRemove = await screen.findByTestId('button-remove-filters');
+    expect(botaoRemove).toBeInTheDocument();
     expect(title).toBeInTheDocument();
     expect(botaoReset).toBeInTheDocument();
     expect(botaoFilter).toBeInTheDocument();

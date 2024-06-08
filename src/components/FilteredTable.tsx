@@ -1,27 +1,22 @@
 import { useState, useEffect } from 'react';
 import { usePlanets, Planet } from '../context/PlanetsContext';
 
-type PlanetKey = keyof Planet;
-
 type PlanetProperty = 'name' | 'population' | 'orbital_period' |
 'diameter' | 'rotation_period' | 'surface_water';
 
 function FilteredTable() {
-  const { planets: originalPlanets, applyFilter,
-    filterText, setFilterText, clearFilters,
-    clearFilter } = usePlanets();
-  const [filters, setFilters] = useState<{ column: PlanetKey;
-    comparison: string; value: string }[]>([]);
-  const [selectedColumn, setSelectedColumn] = useState<PlanetKey>('population');
+  const { planets, originalPlanets, applyFilter, setPlanets,
+    filterText, setFilterText, clearFilters, filters, setFilters } = usePlanets();
+  const [selectedColumn, setSelectedColumn] = useState<string>('population');
   const [comparisonOperator, setComparisonOperator] = useState<'maior que'
   | 'menor que' | 'igual a'>('maior que');
   const [filterValue, setFilterValue] = useState('0');
-  const [availableColumns, setAvailableColumns] = useState<PlanetKey[]>([]);
-  const [filteredColumns, setFilteredColumns] = useState<PlanetKey[]>([]);
+  const [availableColumns, setAvailableColumns] = useState<string[]>([]);
+  const [filteredColumns, setFilteredColumns] = useState<string[]>([]);
 
   useEffect(() => {
     if (originalPlanets.length > 0) {
-      const columns = Object.keys(originalPlanets[0]) as PlanetKey[];
+      const columns = Object.keys(originalPlanets[0]);
       setAvailableColumns(columns.filter((column) => !filteredColumns
         .includes(column) && ['population', 'orbital_period',
         'diameter', 'rotation_period', 'surface_water'].includes(column)));
@@ -35,7 +30,8 @@ function FilteredTable() {
     setFilters([...filters, newFilter]);
     const updatedFilteredColumns = [...filteredColumns, selectedColumn];
     setFilteredColumns(updatedFilteredColumns);
-    applyFilter(selectedColumn, comparisonOperator, filterValue);
+    const value = applyFilter(selectedColumn, comparisonOperator, filterValue, planets);
+    setPlanets(value);
     setAvailableColumns(availableColumns
       .filter((column) => !updatedFilteredColumns.includes(column)));
     setSelectedColumn(availableColumns[0]);
@@ -61,27 +57,40 @@ function FilteredTable() {
     setFilterValue('0');
   };
 
-  const filteredPlanets = originalPlanets.filter((planet) => {
-    if (!filterText) return true;
-    return planet.name.toLowerCase().includes(filterText.toLowerCase());
-  });
-
-  const removeFilter = (columnToRemove: PlanetKey) => {
-    clearFilter(columnToRemove);
+  const removeFilter = (columnToRemove: string) => {
+    const updatedFilters = filters.filter((filter) => filter.column !== columnToRemove);
+    let planetFilter = originalPlanets;
+    updatedFilters.forEach((filter) => {
+      planetFilter = applyFilter(
+        filter.column,
+        filter.comparison,
+        filter.value,
+        planetFilter,
+      );
+    });
+    setPlanets(planetFilter);
+    setFilters(updatedFilters);
+    const updatedFilteredColumns = updatedFilters.map((filter) => filter.column);
+    setFilteredColumns(updatedFilteredColumns);
+    const remainingColumns = availableColumns.filter((column) => {
+      const isUsed = updatedFilters.some((filter) => filter.column === column);
+      return !isUsed;
+    });
+    setAvailableColumns(remainingColumns);
   };
 
   const removeAllFilters = () => {
-    setFilters([]);
-    setFilteredColumns([]);
     clearFilters();
-    setAvailableColumns(Object.keys(originalPlanets[0]) as PlanetKey[]);
+    if (originalPlanets && originalPlanets.length > 0) {
+      setAvailableColumns(Object.keys(originalPlanets[0]));
+    }
   };
 
   return (
     <div>
       <select
         value={ selectedColumn }
-        onChange={ (e) => setSelectedColumn(e.target.value as PlanetKey) }
+        onChange={ (e) => setSelectedColumn(e.target.value) }
         data-testid="column-filter"
       >
         {availableColumns.map((column) => (
@@ -113,7 +122,6 @@ function FilteredTable() {
         type="button"
         onClick={ handleFilter }
         data-testid="button-filter"
-        disabled={ availableColumns.length === 0 }
       >
         Filter
       </button>
@@ -157,17 +165,17 @@ function FilteredTable() {
       <table data-testid="planets-table">
         <thead>
           <tr>
-            {originalPlanets.length > 0 && Object
-              .keys(originalPlanets[0]).map((column) => (
+            {planets.length > 0 && Object
+              .keys(planets[0]).map((column) => (
                 <th key={ column }>{column}</th>
               ))}
           </tr>
         </thead>
         <tbody>
-          {filteredPlanets.map((planet, index) => (
+          {planets.map((planet, index) => (
             <tr key={ index }>
               {Object.keys(originalPlanets[0]).map((column) => (
-                <td key={ column }>{planet[column as PlanetKey] ?? ''}</td>
+                <td key={ column }>{planet[column as keyof Planet] ?? ''}</td>
               ))}
             </tr>
           ))}

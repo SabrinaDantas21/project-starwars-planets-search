@@ -17,11 +17,9 @@ export interface Planet {
   url: string;
 }
 
-type ComparisonOperator = 'maior que' | 'menor que' | 'igual a';
-
 interface FilterState {
-  column: keyof Planet;
-  comparison: ComparisonOperator;
+  column: string;
+  comparison: string;
   value: string;
 }
 
@@ -29,13 +27,15 @@ export interface PlanetsContextType {
   planets: Planet[];
   filterText: string;
   setFilterText: Dispatch<SetStateAction<string>>;
-  applyFilter: (column: keyof Planet, operator: ComparisonOperator,
-    value: string) => void;
+  applyFilter: (column: string, operator: string,
+    value: string, planets: Planet[]) => Planet[];
   resetFilter: () => void;
   addFilter: () => void;
   clearFilters: () => void;
-  clearFilter: (columnToRemove: keyof Planet) => void;
+  setPlanets: (planet: Planet[]) => void;
+  originalPlanets: Planet[];
   filters: FilterState[];
+  setFilters: (filtro: FilterState[]) => void;
 }
 
 const PlanetsContext = createContext<PlanetsContextType | undefined>(undefined);
@@ -73,13 +73,14 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const applyFilter = (
-    column: keyof Planet,
-    operator: ComparisonOperator,
+    column: string,
+    operator: string,
     value: string,
+    planet: Planet[],
   ) => {
     const filterValue = parseFloat(value);
-    const filteredPlanets = planets.filter((planet) => {
-      const planetValue = parseFloat(String(planet[column]));
+    const filteredPlanets = planet.filter((element) => {
+      const planetValue = parseFloat(String(element[column as keyof Planet]));
       if (Number.isNaN(planetValue)) return false;
       switch (operator) {
         case 'maior que':
@@ -92,7 +93,8 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
           return true;
       }
     });
-    setPlanets(filteredPlanets);
+    // setPlanets(filteredPlanets);
+    return filteredPlanets;
   };
 
   const resetFilter = () => {
@@ -124,46 +126,18 @@ function PlanetsProvider({ children }: { children: React.ReactNode }) {
     setPlanets(originalPlanets);
   };
 
-  const clearFilter = (columnToRemove: keyof Planet) => {
-    const updatedFilters = filters.filter((filter) => filter.column !== columnToRemove);
-    setFilters(updatedFilters);
-    let filteredPlanets = [...originalPlanets];
-
-    updatedFilters.forEach((filter) => {
-      filteredPlanets = filteredPlanets.filter((planet) => {
-        const planetValue = planet[filter.column];
-        if (typeof planetValue === 'string') {
-          const numericPlanetValue = parseFloat(planetValue);
-          const numericFilterValue = parseFloat(filter.value);
-          if (Number.isNaN(numericPlanetValue)) return false;
-
-          switch (filter.comparison) {
-            case 'maior que':
-              return numericPlanetValue > numericFilterValue;
-            case 'menor que':
-              return numericPlanetValue < numericFilterValue;
-            case 'igual a':
-              return numericPlanetValue === numericFilterValue;
-            default:
-              return true;
-          }
-        }
-        return true;
-      });
-    });
-    setPlanets(filteredPlanets);
-  };
-
   const contextValue: PlanetsContextType = {
+    setPlanets,
     planets,
+    originalPlanets,
     filterText,
     setFilterText,
     applyFilter,
     resetFilter,
     addFilter,
+    setFilters,
     filters,
     clearFilters,
-    clearFilter,
   };
 
   return (
